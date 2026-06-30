@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Fine Wines Christmas Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#07111f; --panel:#101d33; --panel2:#14233d; --panel3:#0d192d;
+  --line:#2b4568; --line2:#385985; --text:#f7fbff; --muted:#aebbd1;
+  --blue:#69a9ff; --blue2:#8fc0ff; --gold:#e8c86c; --gold2:#f6d985;
+  --green:#22c55e; --red:#ff5d73; --amber:#f59e0b; --purple:#c084fc;
+  --shadow:0 18px 55px rgba(0,0,0,.28);
+}
+*{box-sizing:border-box} html{scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(circle at top right,#163f3d 0,#07111f 34%,#050b15 100%);color:var(--text);font-family:Arial,Helvetica,sans-serif;}
+.wrap{max-width:1640px;margin:0 auto;padding:24px}.hidden{display:none!important}
+header{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:18px}
+.brand{display:flex;align-items:center;gap:16px}.logo{width:58px;height:58px;border-radius:18px;background:linear-gradient(135deg,#ffe08a,#8a5308);display:flex;align-items:center;justify-content:center;font-size:30px;box-shadow:var(--shadow)}
+h1{margin:0;font-size:32px;letter-spacing:-.02em}.sub{color:var(--muted);margin-top:6px;font-size:14px}.topActions{display:flex;gap:10px;flex-wrap:wrap}
+.panel{background:rgba(16,29,51,.94);border:1px solid var(--line);border-radius:20px;padding:18px;margin-bottom:18px;box-shadow:var(--shadow)}
+.panel.tight{padding:14px}.upload{border:2px dashed #3f5f91;background:rgba(13,25,45,.88)}
+.uploadGrid{display:grid;grid-template-columns:1.25fr .75fr;gap:18px;align-items:center}.dropText{font-size:15px;color:#d7e7ff}.dropText strong{color:#fff}.fileList{display:flex;flex-direction:column;gap:8px;font-size:13px;color:var(--muted)}
+.fileTag{border:1px solid var(--line);background:#0b1628;border-radius:12px;padding:8px 10px}.ok{color:var(--green)}.missing{color:var(--amber)}
+.btn{border:0;border-radius:12px;padding:12px 16px;font-weight:900;cursor:pointer;color:#fff;background:#2563eb;box-shadow:0 8px 24px rgba(37,99,235,.25)}
+.btn:hover{filter:brightness(1.08)}.btn.secondary{background:#334155}.btn.gold{background:#a16207}.btn.green{background:#15803d}.btn:disabled{opacity:.45;cursor:not-allowed}.btn.small{padding:8px 10px;font-size:12px}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.status{background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.55);color:#ffe0a1;border-radius:14px;padding:12px;margin-bottom:14px;font-weight:700}
+.status.goodStatus{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.45);color:#b7ffd1}
+.nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.nav a{color:#dbeafe;text-decoration:none;background:#0b1628;border:1px solid var(--line);border-radius:999px;padding:8px 12px;font-weight:800;font-size:12px}
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:18px}.kpi{background:linear-gradient(180deg,#12213b,#0e1a2f);border:1px solid var(--line);border-radius:18px;padding:16px;min-height:120px}.kpi .label{color:#9fb3d8;text-transform:uppercase;letter-spacing:.08em;font-size:12px}.kpi .value{font-size:28px;font-weight:950;margin:10px 0 5px}.kpi .foot{color:var(--muted);font-size:12px}.good{color:var(--green)!important}.bad{color:var(--red)!important}.amber{color:var(--amber)!important}.muted{color:var(--muted)}.blue{color:var(--blue)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.grid13{display:grid;grid-template-columns:1.2fr .8fr;gap:18px}
+.sectionTitle{display:flex;justify-content:space-between;gap:12px;align-items:flex-end;margin-bottom:12px}h2{margin:0;font-size:22px}.small{font-size:12px}.caption{color:var(--muted);font-size:13px;margin-top:5px;line-height:1.4}
+.filters{display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:10px;margin:12px 0}input,select{width:100%;background:#0b1628;border:1px solid #2b4568;color:var(--text);border-radius:12px;padding:11px;font-size:14px}
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}th,td{padding:11px 10px;border-bottom:1px solid #203754;text-align:left;vertical-align:middle}th{background:#172846;color:#eaf2ff;position:sticky;top:0;z-index:3;white-space:nowrap}tbody tr:hover{background:#10213c}.right{text-align:right}.center{text-align:center}.nowrap{white-space:nowrap}
+.pill{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:5px 10px;font-weight:900;font-size:12px}.pill.green{background:rgba(34,197,94,.15);color:#86efac}.pill.red{background:rgba(255,93,115,.15);color:#ffa6b4}.pill.gold{background:rgba(232,200,108,.18);color:#ffe08a}.pill.blue{background:rgba(105,169,255,.15);color:#bfdbfe}.pill.amber{background:rgba(245,158,11,.15);color:#ffd28a}
+.compareRow{display:grid;grid-template-columns:230px 1fr 105px 90px;gap:12px;align-items:center;margin:13px 0;font-size:13px}.barBlock{display:grid;gap:5px}.barLine{display:grid;grid-template-columns:45px 1fr 92px;gap:8px;align-items:center}.track{height:12px;background:#274064;border-radius:999px;overflow:hidden}.bar24,.bar25{height:100%;border-radius:999px}.bar24{background:linear-gradient(90deg,#496d9f,#8da6c6)}.bar25{background:linear-gradient(90deg,#69a9ff,#e8c86c)}.barLabel{font-size:11px;color:#c7d2e7}.valueLabel{font-size:11px;color:#dce8ff;text-align:right}
+.progress{height:8px;background:#203754;border-radius:999px;overflow:hidden;margin-top:8px}.progress span{display:block;height:100%;background:linear-gradient(90deg,#69a9ff,#e8c86c)}
+.insightList{display:grid;gap:10px}.insight{border:1px solid var(--line);border-radius:14px;background:#0b1628;padding:12px}.insight strong{display:block;margin-bottom:5px}.rankList{display:grid;gap:10px}.rankItem{display:grid;grid-template-columns:1fr auto;gap:12px;border:1px solid var(--line);border-radius:14px;background:#0b1628;padding:11px}.rankItem .name{font-weight:900}.rankItem .meta{color:var(--muted);font-size:12px;margin-top:4px}.detailText{color:#aebbd1;font-size:12px;margin-top:4px;line-height:1.35}.skuList{font-size:12px;color:#d7e7ff;line-height:1.35}.empty{color:var(--muted);padding:14px}
+.footerNote{color:#91a3c2;font-size:12px;text-align:center;margin:24px 0}.qualityGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.qualityBox{background:#0b1628;border:1px solid var(--line);border-radius:14px;padding:12px}.qualityBox .num{font-size:22px;font-weight:950;margin-top:6px}
+@media(max-width:1200px){.kpis{grid-template-columns:repeat(3,1fr)}.grid2,.grid3,.grid13,.uploadGrid{grid-template-columns:1fr}.compareRow{grid-template-columns:1fr}.right{text-align:left}.filters{grid-template-columns:1fr 1fr}.qualityGrid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:720px){.wrap{padding:14px}.kpis{grid-template-columns:1fr}.filters{grid-template-columns:1fr}.brand{align-items:flex-start}.topActions{display:none}h1{font-size:25px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand"><div class="logo">🎄</div><div><h1>Fine Wines Christmas Dashboard</h1><div class="sub">Group sales 2024 vs 2025 • Shop Hamper brochure comparison • Volume from Column E • Group view before store breakdown</div></div></div>
+    <div class="topActions"><button class="btn secondary small" onclick="location.reload()">Reset page</button><button class="btn gold small" id="downloadSummaryTop">Download summary</button></div>
+  </header>
+
+  <nav class="nav">
+    <a href="#executive">Executive</a><a href="#brochure">Brochure Lines</a><a href="#groups">Product Groups</a><a href="#winners">Winners & Decliners</a><a href="#products">All Products</a><a href="#quality">Data Checks</a>
+  </nav>
+
+  <section class="panel upload">
+    <div class="uploadGrid">
+      <div>
+        <h2>Upload dashboard files</h2>
+        <p class="dropText">Upload <strong>Group sales 2024.xlsx</strong>, <strong>Group sales 2025.xlsx</strong>, and optional <strong>Shop top Hamper sales.xlsx</strong>. The hamper file maps 2025 SKU(s) to 2024 SKU(s), then the dashboard adds totals together before comparison.</p>
+        <div class="row"><input id="fileInput" type="file" multiple accept=".xlsx,.xls" style="max-width:560px"><button class="btn" id="buildBtn">Build Dashboard</button><button class="btn secondary" id="clearBtn">Clear</button></div>
+      </div>
+      <div class="fileList" id="fileList"><div class="fileTag missing">No files selected yet.</div></div>
+    </div>
+  </section>
+
+  <div id="status" class="status">Waiting for files. The 2 group sales files are enough for overall analysis. The Shop top Hamper file is needed for brochure-line comparison.</div>
+
+  <section id="executive" class="kpis"></section>
+
+  <section class="grid13">
+    <div class="panel">
+      <div class="sectionTitle"><div><h2>Executive Story</h2><div class="caption">Quick business read before looking at tables.</div></div></div>
+      <div class="insightList" id="insights"><div class="empty">Build the dashboard to see automatic insights.</div></div>
+    </div>
+    <div class="panel">
+      <div class="sectionTitle"><div><h2>Performance Score</h2><div class="caption">A simple read of sales, volume, GP and brochure movement.</div></div></div>
+      <div id="scoreBox"><div class="empty">No score yet.</div></div>
+    </div>
+  </section>
+
+  <section class="grid2" id="groups">
+    <div class="panel">
+      <div class="sectionTitle"><div><h2>Product Group Comparison</h2><div class="caption">Shows 2024 vs 2025 sales by product group. Bars are separate, not stacked.</div></div></div>
+      <div id="groupChart"><div class="empty">No data yet.</div></div>
+    </div>
+    <div class="panel">
+      <div class="sectionTitle"><div><h2>Top Product Groups</h2><div class="caption">Ranked by sales growth.</div></div></div>
+      <div id="groupRank"><div class="empty">No data yet.</div></div>
+    </div>
+  </section>
+
+  <section class="grid2" id="brochure">
+    <div class="panel">
+      <div class="sectionTitle"><div><h2>Shop Hamper Brochure Lines</h2><div class="caption">True mapped comparison: 2025 SKU(s) vs 2024 SKU(s). Multiple SKUs in either year are added together.</div></div></div>
+      <div id="brochureChart"><div class="empty">Upload the Shop top Hamper file to see mapped brochure comparison.</div></div>
+    </div>
+    <div class="panel">
+      <div class="sectionTitle"><div><h2>Brochure Winners & Watchouts</h2><div class="caption">Best and weakest brochure lines at a glance.</div></div></div>
+      <div id="brochureInsights"><div class="empty">No brochure mapping loaded yet.</div></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="sectionTitle"><div><h2>Brochure Lines Detail</h2><div class="caption">Main Shop Hamper table. This is the like-for-like 2024 vs 2025 comparison.</div></div><button class="btn gold" id="downloadBrochure">Download brochure comparison</button></div>
+    <div class="filters">
+      <input id="broSearch" placeholder="Search brochure line or SKU">
+      <select id="broTrend"><option value="all">All trends</option><option value="up">Growth only</option><option value="down">Decline only</option><option value="flat">Flat / no 2024</option></select>
+      <select id="broSort"><option value="sales25">Sort: 2025 sales</option><option value="growthEuro">Sort: Growth €</option><option value="growthPct">Sort: Growth %</option><option value="volume25">Sort: 2025 qty</option><option value="volumeChange">Sort: Qty change</option><option value="sales24">Sort: 2024 sales</option></select>
+      <span></span><button class="btn secondary" id="resetBro">Reset</button>
+    </div>
+    <div style="overflow:auto;max-height:620px;margin-top:14px"><table id="broTable"><thead><tr><th>Brochure Line</th><th>2025 SKU(s)</th><th>2024 SKU(s)</th><th class="right">2024 Sales</th><th class="right">2025 Sales</th><th class="right">€ Change</th><th class="right">% Change</th><th class="right">2024 Qty</th><th class="right">2025 Qty</th><th class="right">Qty Change</th><th class="right">2025 Profit</th><th class="right">2025 GP%</th><th>Trend</th></tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <section id="winners" class="grid3">
+    <div class="panel"><div class="sectionTitle"><div><h2>Biggest Winners</h2><div class="caption">SKU-level sales growth.</div></div></div><div id="winnerList"><div class="empty">No data yet.</div></div></div>
+    <div class="panel"><div class="sectionTitle"><div><h2>Biggest Decliners</h2><div class="caption">SKU-level sales decline.</div></div></div><div id="declinerList"><div class="empty">No data yet.</div></div></div>
+    <div class="panel"><div class="sectionTitle"><div><h2>Top 2025 Products</h2><div class="caption">Ranked by 2025 sales.</div></div></div><div id="topProductList"><div class="empty">No data yet.</div></div></div>
+  </section>
+
+  <section class="panel" id="products">
+    <div class="sectionTitle"><div><h2>All Products</h2><div class="caption">SKU-level comparison where the same SKU exists across years. Shop Hamper mapped SKUs are highlighted.</div></div><button class="btn gold" id="downloadAll">Download all products</button></div>
+    <div class="filters">
+      <input id="prodSearch" placeholder="Search SKU, description, group, type">
+      <select id="groupFilter"><option value="all">All groups</option></select>
+      <select id="hamperFilter"><option value="all">All products</option><option value="hamper">Shop Hampers only</option><option value="nonhamper">Exclude Shop Hampers</option></select>
+      <select id="prodSort"><option value="sales25">Sort: 2025 sales</option><option value="growthEuro">Sort: Growth €</option><option value="growthPct">Sort: Growth %</option><option value="volume25">Sort: 2025 qty</option><option value="volumeChange">Sort: Qty change</option><option value="sales24">Sort: 2024 sales</option></select>
+      <button class="btn secondary" id="resetProd">Reset</button>
+    </div>
+    <div style="overflow:auto;max-height:650px;margin-top:14px"><table id="prodTable"><thead><tr><th>SKU</th><th>Description</th><th>Group</th><th>Type</th><th class="right">2024 Sales</th><th class="right">2025 Sales</th><th class="right">€ Change</th><th class="right">% Change</th><th class="right">2024 Qty</th><th class="right">2025 Qty</th><th class="right">Qty Change</th><th class="right">2025 Cases</th><th class="right">2025 Profit</th><th class="right">2025 GP%</th><th>Flag</th></tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <section class="panel" id="quality">
+    <div class="sectionTitle"><div><h2>Data Checks</h2><div class="caption">Helps catch mapping problems before the store files are added.</div></div><button class="btn secondary" id="downloadMissing">Download missing SKUs</button></div>
+    <div class="qualityGrid" id="qualityGrid"></div>
+    <div style="overflow:auto;max-height:300px;margin-top:14px"><table id="missingTable"><thead><tr><th>Issue</th><th>Year</th><th>SKU</th><th>Brochure Line</th></tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <div class="footerNote">Fine Wines Christmas Dashboard • Group view first • Store breakdown can be added after this version is approved.</div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+let selectedFiles=[], data2024=[], data2025=[], mappingRows=[], productRows=[], brochureRows=[], missingRows=[], groupRows=[];
+const COL = {sku:0, desc:1, pack:2, price:3, volume:4, cases:6, sales:8, profit:11, gp:12, group:25, type:26};
+function clean(x){return (x==null?'':String(x)).replace(/_x000d_/g,' ').trim();}
+function normSku(x){let s=clean(x); if(!s) return ''; if(/^\d+(\.0+)?$/.test(s)) return String(parseInt(Number(s),10)); return s.replace(/[^0-9A-Za-z]/g,'');}
+function numVal(x){if(x==null||x==='')return 0; if(typeof x==='number')return isFinite(x)?x:0; let s=String(x).replace(/[€,\s]/g,'').replace(/,/g,''); let n=parseFloat(s); return isFinite(n)?n:0;}
+function money(n){n=Number(n)||0; let sign=n<0?'-':''; n=Math.abs(n); return sign+'€'+Math.round(n).toLocaleString('en-IE');}
+function int(n){return Math.round(Number(n)||0).toLocaleString('en-IE');}
+function pct(n){return n==null || !isFinite(n) ? 'n/a' : (n>=0?'+':'') + n.toFixed(1) + '%';}
+function safePct(n){return n==null || !isFinite(n) ? 0 : n;}
+function fileRole(name){let n=name.toLowerCase(); if(n.includes('group')&&n.includes('2024')) return 'group2024'; if(n.includes('group')&&n.includes('2025')) return 'group2025'; if(n.includes('hamper')||n.includes('brochure')||n.includes('mapping')) return 'mapping'; return 'unknown';}
+async function readFirstSheet(file){let ab=await file.arrayBuffer(); let wb=XLSX.read(ab,{type:'array'}); return XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''});}
+function parseGroup(rows,year){return rows.slice(1).map(r=>({year, sku:normSku(r[COL.sku]), description:clean(r[COL.desc]), pack:numVal(r[COL.pack]), price:numVal(r[COL.price]), volume:numVal(r[COL.volume]), cases:numVal(r[COL.cases]), sales:numVal(r[COL.sales]), profit:numVal(r[COL.profit]), gp:numVal(r[COL.gp]), group:clean(r[COL.group])||'Unclassified', type:clean(r[COL.type])||'Unclassified'})).filter(r=>r.sku && (r.sales||r.volume||r.description));}
+function parseMapping(rows){let out=[]; for(let i=1;i<rows.length;i++){let r=rows[i]; let skus25=[normSku(r[0]),normSku(r[1])].filter(Boolean); let skus24=[normSku(r[2]),normSku(r[3])].filter(Boolean); if(!skus24.length && normSku(r[1]) && !normSku(r[2]) && !normSku(r[3])){ skus24=[normSku(r[1])]; skus25=[normSku(r[0])].filter(Boolean); }
+ let name=clean(r[4]) || clean(r[5]) || ('Brochure Line '+i); if(skus25.length||skus24.length) out.push({name, skus25:[...new Set(skus25)], skus24:[...new Set(skus24)], row:i+1}); }
+ return out;}
+function groupBySku(arr){let m=new Map(); for(let r of arr){if(!m.has(r.sku)) m.set(r.sku,{...r}); else{let x=m.get(r.sku); x.volume+=r.volume; x.cases+=r.cases; x.sales+=r.sales; x.profit+=r.profit; x.gp=x.sales?x.profit/x.sales*100:0; if(!x.description) x.description=r.description; if(!x.group) x.group=r.group; if(!x.type) x.type=r.type;}} return m;}
+function sumSkus(index, skus, year, name){let total={sales:0,volume:0,cases:0,profit:0,rows:[],missing:[]}; for(let s of [...new Set(skus)]){let r=index.get(s); if(r){total.sales+=r.sales; total.volume+=r.volume; total.cases+=r.cases; total.profit+=r.profit; total.rows.push(r);} else if(s){total.missing.push({issue:'Mapped SKU not found in group sales file', year, sku:s, name});}} total.gp=total.sales?total.profit/total.sales*100:0; return total;}
+function buildData(){let idx24=groupBySku(data2024), idx25=groupBySku(data2025); let hamperSkus=new Set(); mappingRows.forEach(m=>{m.skus25.forEach(s=>hamperSkus.add(s)); m.skus24.forEach(s=>hamperSkus.add(s));});
+ let allSkus=new Set([...idx24.keys(),...idx25.keys()]); productRows=[...allSkus].map(s=>{let a=idx24.get(s)||{}, b=idx25.get(s)||{}; let sales24=a.sales||0, sales25=b.sales||0, growthEuro=sales25-sales24; let growthPct=sales24?growthEuro/sales24*100:(sales25?100:null); return {sku:s,description:b.description||a.description||'',group:b.group||a.group||'Unclassified',type:b.type||a.type||'Unclassified',sales24,sales25,growthEuro,growthPct,volume24:a.volume||0,volume25:b.volume||0,volumeChange:(b.volume||0)-(a.volume||0),cases25:b.cases||0,profit25:b.profit||0,gp25:b.gp||0,isHamper:hamperSkus.has(s)};});
+ missingRows=[]; brochureRows=mappingRows.map(m=>{let a=sumSkus(idx24,m.skus24,2024,m.name), b=sumSkus(idx25,m.skus25,2025,m.name); missingRows.push(...a.missing,...b.missing); let growthEuro=b.sales-a.sales; let growthPct=a.sales?growthEuro/a.sales*100:(b.sales?100:null); let volumeChange=b.volume-a.volume; let volumePct=a.volume?volumeChange/a.volume*100:(b.volume?100:null); return {...m,sales24:a.sales,sales25:b.sales,growthEuro,growthPct,volume24:a.volume,volume25:b.volume,volumeChange,volumePct,cases25:b.cases,profit25:b.profit,gp25:b.gp,detail24:a.rows,detail25:b.rows,missing:a.missing.concat(b.missing)};});
+ let gm=new Map(); data2024.forEach(r=>{let k=r.group||'Unclassified'; if(!gm.has(k))gm.set(k,{group:k,sales24:0,sales25:0,volume24:0,volume25:0,profit25:0,cases25:0}); let x=gm.get(k); x.sales24+=r.sales; x.volume24+=r.volume;}); data2025.forEach(r=>{let k=r.group||'Unclassified'; if(!gm.has(k))gm.set(k,{group:k,sales24:0,sales25:0,volume24:0,volume25:0,profit25:0,cases25:0}); let x=gm.get(k); x.sales25+=r.sales; x.volume25+=r.volume; x.profit25+=r.profit; x.cases25+=r.cases;}); groupRows=[...gm.values()].map(r=>({...r,growthEuro:r.sales25-r.sales24,growthPct:r.sales24?(r.sales25-r.sales24)/r.sales24*100:(r.sales25?100:null),volumeChange:r.volume25-r.volume24,gp25:r.sales25?r.profit25/r.sales25*100:0}));}
+function trendPill(r){if(r.growthEuro>0)return '<span class="pill green">▲ Growth</span>'; if(r.growthEuro<0)return '<span class="pill red">▼ Decline</span>'; return '<span class="pill amber">Flat / New</span>';}
+function renderKPIs(){let s24=data2024.reduce((a,b)=>a+b.sales,0), s25=data2025.reduce((a,b)=>a+b.sales,0), p25=data2025.reduce((a,b)=>a+b.profit,0), c25=data2025.reduce((a,b)=>a+b.cases,0), v24=data2024.reduce((a,b)=>a+b.volume,0), v25=data2025.reduce((a,b)=>a+b.volume,0); let h24=brochureRows.reduce((a,b)=>a+b.sales24,0), h25=brochureRows.reduce((a,b)=>a+b.sales25,0), hv24=brochureRows.reduce((a,b)=>a+b.volume24,0), hv25=brochureRows.reduce((a,b)=>a+b.volume25,0); let growth=s25-s24, growthPct=s24?growth/s24*100:null, gp=s25?p25/s25*100:0, vg=v25-v24, hG=h25-h24, hPct=h24?hG/h24*100:(h25?100:null), hvG=hv25-hv24;
+ let cards=[['2025 Sales',money(s25),'2024 '+money(s24),growth>=0?'good':'bad'],['Sales Growth',money(growth),pct(growthPct),growth>=0?'good':'bad'],['2025 Volume Qty',int(v25),'2024 '+int(v24)+' | Change '+int(vg),vg>=0?'good':'bad'],['2025 Profit',money(p25),'GP% '+gp.toFixed(1)+'%','blue'],['Brochure Sales',money(h25),'2024 '+money(h24)+' | '+pct(hPct),hG>=0?'good':'bad'],['Brochure Qty',int(hv25),'2024 '+int(hv24)+' | Change '+int(hvG),hvG>=0?'good':'bad']];
+ $('executive').innerHTML=cards.map(c=>`<div class="kpi"><div class="label">${c[0]}</div><div class="value ${c[3]}">${c[1]}</div><div class="foot">${c[2]}</div></div>`).join('');
+}
+function renderInsights(){let s24=data2024.reduce((a,b)=>a+b.sales,0), s25=data2025.reduce((a,b)=>a+b.sales,0), v24=data2024.reduce((a,b)=>a+b.volume,0), v25=data2025.reduce((a,b)=>a+b.volume,0), p25=data2025.reduce((a,b)=>a+b.profit,0); let h24=brochureRows.reduce((a,b)=>a+b.sales24,0), h25=brochureRows.reduce((a,b)=>a+b.sales25,0); let growth=s25-s24, gp=s25?p25/s25*100:0; let topGroup=[...groupRows].sort((a,b)=>b.growthEuro-a.growthEuro)[0]; let weakGroup=[...groupRows].sort((a,b)=>a.growthEuro-b.growthEuro)[0]; let topBro=[...brochureRows].sort((a,b)=>b.growthEuro-a.growthEuro)[0]; let weakBro=[...brochureRows].sort((a,b)=>a.growthEuro-b.growthEuro)[0]; let parts=[];
+ parts.push(`<div class="insight"><strong class="${growth>=0?'good':'bad'}">Overall sales are ${growth>=0?'ahead':'behind'} 2024 by ${money(growth)} (${pct(s24?growth/s24*100:null)}).</strong><span class="muted">2025 sales ${money(s25)} vs 2024 sales ${money(s24)}. Volume is ${int(v25)} vs ${int(v24)}.</span></div>`);
+ parts.push(`<div class="insight"><strong>2025 gross profit is ${money(p25)} with GP% ${gp.toFixed(1)}%.</strong><span class="muted">This gives a profit view as well as sales value.</span></div>`);
+ if(topGroup) parts.push(`<div class="insight"><strong class="good">Strongest product group: ${topGroup.group}</strong><span class="muted">Growth ${money(topGroup.growthEuro)} (${pct(topGroup.growthPct)}), 2025 sales ${money(topGroup.sales25)}.</span></div>`);
+ if(weakGroup) parts.push(`<div class="insight"><strong class="bad">Weakest product group: ${weakGroup.group}</strong><span class="muted">Movement ${money(weakGroup.growthEuro)} (${pct(weakGroup.growthPct)}), 2025 sales ${money(weakGroup.sales25)}.</span></div>`);
+ if(topBro) parts.push(`<div class="insight"><strong class="good">Best brochure line: ${topBro.name}</strong><span class="muted">2025 ${money(topBro.sales25)} vs 2024 ${money(topBro.sales24)}. Change ${money(topBro.growthEuro)} (${pct(topBro.growthPct)}).</span></div>`);
+ if(weakBro) parts.push(`<div class="insight"><strong class="bad">Brochure watchout: ${weakBro.name}</strong><span class="muted">2025 ${money(weakBro.sales25)} vs 2024 ${money(weakBro.sales24)}. Change ${money(weakBro.growthEuro)} (${pct(weakBro.growthPct)}).</span></div>`);
+ $('insights').innerHTML=parts.join('');
+ let score=50; if(growth>0)score+=15; if(v25>=v24)score+=10; if(gp>=40)score+=10; if(h25>=h24&&brochureRows.length)score+=15; score=Math.max(0,Math.min(100,score)); let cls=score>=75?'good':score>=55?'amber':'bad'; $('scoreBox').innerHTML=`<div class="kpi"><div class="label">Dashboard score</div><div class="value ${cls}">${score}/100</div><div class="foot">Based on sales growth, volume, GP% and brochure-line performance.</div><div class="progress"><span style="width:${score}%"></span></div></div>`;
+}
+function compareRows(rows, labelKey, valueKey='sales25', maxRows=10){let max=Math.max(1,...rows.map(r=>Math.max(r.sales24||0,r.sales25||0))); return rows.slice(0,maxRows).map(r=>`<div class="compareRow"><div><strong>${r[labelKey]}</strong><div class="detailText">${money(r.growthEuro)} • ${pct(r.growthPct)} • Qty change ${int(r.volumeChange||0)}</div></div><div class="barBlock"><div class="barLine"><span class="barLabel">2024</span><div class="track"><div class="bar24" style="width:${(r.sales24||0)/max*100}%"></div></div><span class="valueLabel">${money(r.sales24||0)}</span></div><div class="barLine"><span class="barLabel">2025</span><div class="track"><div class="bar25" style="width:${(r.sales25||0)/max*100}%"></div></div><span class="valueLabel">${money(r.sales25||0)}</span></div></div><div class="right"><strong>${money(r.sales25||0)}</strong></div><div>${trendPill(r)}</div></div>`).join('');}
+function renderGroupSections(){let rows=[...groupRows].sort((a,b)=>b.sales25-a.sales25); $('groupChart').innerHTML=rows.length?compareRows(rows,'group', 'sales25', 12):'<div class="empty">No group data.</div>'; let rank=[...groupRows].sort((a,b)=>b.growthEuro-a.growthEuro).slice(0,10); $('groupRank').innerHTML=rank.map(r=>`<div class="rankItem"><div><div class="name">${r.group}</div><div class="meta">2024 ${money(r.sales24)} → 2025 ${money(r.sales25)} • Qty ${int(r.volume25)}</div></div><div class="right ${r.growthEuro>=0?'good':'bad'}"><strong>${money(r.growthEuro)}</strong><br><span class="small">${pct(r.growthPct)}</span></div></div>`).join('')||'<div class="empty">No group rankings.</div>';
+}
+function renderBrochureSections(){let rows=[...brochureRows].sort((a,b)=>b.sales25-a.sales25); $('brochureChart').innerHTML=rows.length?compareRows(rows,'name','sales25',10):'<div class="empty">Upload the Shop top Hamper file to see brochure comparison.</div>'; let winners=[...brochureRows].sort((a,b)=>b.growthEuro-a.growthEuro).slice(0,5); let losers=[...brochureRows].sort((a,b)=>a.growthEuro-b.growthEuro).slice(0,5); $('brochureInsights').innerHTML = brochureRows.length ? `<div class="rankList"><h3 style="margin:0">Top Growth</h3>${winners.map(rankBro).join('')}<h3 style="margin:12px 0 0">Watchouts</h3>${losers.map(rankBro).join('')}</div>` : '<div class="empty">No brochure mapping loaded yet.</div>';
+}
+function rankBro(r){return `<div class="rankItem"><div><div class="name">${r.name}</div><div class="meta">${money(r.sales24)} → ${money(r.sales25)} • Qty ${int(r.volume24)} → ${int(r.volume25)}</div></div><div class="right ${r.growthEuro>=0?'good':'bad'}"><strong>${money(r.growthEuro)}</strong><br><span class="small">${pct(r.growthPct)}</span></div></div>`;}
+function renderRankLists(){let eligible=productRows.filter(r=>r.sales24||r.sales25); let win=[...eligible].sort((a,b)=>b.growthEuro-a.growthEuro).slice(0,10); let lose=[...eligible].sort((a,b)=>a.growthEuro-b.growthEuro).slice(0,10); let top=[...eligible].sort((a,b)=>b.sales25-a.sales25).slice(0,10); const item=r=>`<div class="rankItem"><div><div class="name">${r.description||r.sku}</div><div class="meta">SKU ${r.sku} • ${r.group} • 2025 Qty ${int(r.volume25)} ${r.isHamper?' • Shop Hamper':''}</div></div><div class="right ${r.growthEuro>=0?'good':'bad'}"><strong>${money(r.growthEuro)}</strong><br><span class="small">${money(r.sales25)}</span></div></div>`; $('winnerList').innerHTML=win.map(item).join(''); $('declinerList').innerHTML=lose.map(item).join(''); $('topProductList').innerHTML=top.map(item).join('');}
+function fillGroupFilter(){let groups=[...new Set(productRows.map(r=>r.group).filter(Boolean))].sort(); $('groupFilter').innerHTML='<option value="all">All groups</option>'+groups.map(g=>`<option>${g}</option>`).join('');}
+function renderBroTable(){let q=$('broSearch').value.toLowerCase(), trend=$('broTrend').value, sort=$('broSort').value; let rows=brochureRows.filter(r=>(r.name+' '+r.skus25.join(' ')+' '+r.skus24.join(' ')).toLowerCase().includes(q)); if(trend==='up')rows=rows.filter(r=>r.growthEuro>0); if(trend==='down')rows=rows.filter(r=>r.growthEuro<0); if(trend==='flat')rows=rows.filter(r=>r.growthEuro===0 || !r.sales24); rows.sort((a,b)=>(b[sort]??-999999)-(a[sort]??-999999)); $('broTable').querySelector('tbody').innerHTML=rows.map(r=>`<tr><td><strong>${r.name}</strong><div class="detailText">${r.missing.length?'<span class="amber">Mapping warning: missing SKU</span>':'Mapped comparison'}</div></td><td class="skuList">${r.skus25.join('<br>')||'-'}</td><td class="skuList">${r.skus24.join('<br>')||'-'}</td><td class="right">${money(r.sales24)}</td><td class="right"><strong>${money(r.sales25)}</strong></td><td class="right ${r.growthEuro>=0?'good':'bad'}">${money(r.growthEuro)}</td><td class="right ${r.growthEuro>=0?'good':'bad'}">${pct(r.growthPct)}</td><td class="right">${int(r.volume24)}</td><td class="right"><strong>${int(r.volume25)}</strong></td><td class="right ${r.volumeChange>=0?'good':'bad'}">${int(r.volumeChange)}</td><td class="right">${money(r.profit25)}</td><td class="right">${r.gp25.toFixed(1)}%</td><td>${trendPill(r)}</td></tr>`).join('')||'<tr><td colspan="13" class="empty">No brochure lines found.</td></tr>';}
+function renderProdTable(){let q=$('prodSearch').value.toLowerCase(), group=$('groupFilter').value, hf=$('hamperFilter').value, sort=$('prodSort').value; let rows=productRows.filter(r=>(r.sku+' '+r.description+' '+r.group+' '+r.type).toLowerCase().includes(q)); if(group!=='all')rows=rows.filter(r=>r.group===group); if(hf==='hamper')rows=rows.filter(r=>r.isHamper); if(hf==='nonhamper')rows=rows.filter(r=>!r.isHamper); rows.sort((a,b)=>(b[sort]??-999999)-(a[sort]??-999999)); rows=rows.slice(0,750); $('prodTable').querySelector('tbody').innerHTML=rows.map(r=>`<tr><td>${r.sku}</td><td><strong>${r.description}</strong></td><td>${r.group}</td><td>${r.type}</td><td class="right">${money(r.sales24)}</td><td class="right"><strong>${money(r.sales25)}</strong></td><td class="right ${r.growthEuro>=0?'good':'bad'}">${money(r.growthEuro)}</td><td class="right ${r.growthEuro>=0?'good':'bad'}">${pct(r.growthPct)}</td><td class="right">${int(r.volume24)}</td><td class="right"><strong>${int(r.volume25)}</strong></td><td class="right ${r.volumeChange>=0?'good':'bad'}">${int(r.volumeChange)}</td><td class="right">${int(r.cases25)}</td><td class="right">${money(r.profit25)}</td><td class="right">${r.gp25.toFixed(1)}%</td><td>${r.isHamper?'<span class="pill gold">Shop Hamper</span>':''}</td></tr>`).join('')||'<tr><td colspan="15" class="empty">No products found.</td></tr>';}
+function renderQuality(){let found24=data2024.length, found25=data2025.length, mapped=brochureRows.length, missing=missingRows.length; $('qualityGrid').innerHTML=[['2024 rows read',found24,''],['2025 rows read',found25,''],['Brochure lines',mapped,''],['Missing mapped SKUs',missing,missing?'bad':'good']].map(x=>`<div class="qualityBox"><div class="muted small">${x[0]}</div><div class="num ${x[2]}">${int(x[1])}</div></div>`).join(''); $('missingTable').querySelector('tbody').innerHTML=missingRows.map(r=>`<tr><td>${r.issue}</td><td>${r.year}</td><td>${r.sku}</td><td>${r.name}</td></tr>`).join('')||'<tr><td colspan="4" class="empty">No missing mapped SKUs found.</td></tr>';}
+function csvDownload(rows, fileName, customKeys){if(!rows.length){alert('No rows to download.');return;} let keys=customKeys||Object.keys(rows[0]).filter(k=>!k.startsWith('detail') && k!=='missing'); let csv=[keys.join(',')].concat(rows.map(r=>keys.map(k=>'"'+String(Array.isArray(r[k])?r[k].join(' | '):(r[k]??'')).replace(/"/g,'""')+'"').join(','))).join('\n'); let a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download=fileName; a.click();}
+function renderAll(){renderKPIs(); renderInsights(); renderGroupSections(); renderBrochureSections(); fillGroupFilter(); renderBroTable(); renderRankLists(); renderProdTable(); renderQuality();}
+async function build(){try{if(!selectedFiles.length){$('status').textContent='Please choose files first.';return;} let roles={}; for(let f of selectedFiles){let role=fileRole(f.name); if(role!=='unknown') roles[role]=f;} if(!roles.group2024||!roles.group2025){$('status').textContent='Could not find both group files. Make sure filenames include Group and 2024 / 2025.'; return;} $('status').textContent='Reading files and building dashboard...'; data2024=parseGroup(await readFirstSheet(roles.group2024),2024); data2025=parseGroup(await readFirstSheet(roles.group2025),2025); mappingRows=roles.mapping?parseMapping(await readFirstSheet(roles.mapping)):[]; buildData(); renderAll(); $('status').classList.add('goodStatus'); $('status').innerHTML=`Dashboard built successfully. 2024 rows: <strong>${data2024.length}</strong>. 2025 rows: <strong>${data2025.length}</strong>. Brochure lines: <strong>${brochureRows.length}</strong>.`; }catch(e){console.error(e); $('status').classList.remove('goodStatus'); $('status').textContent='Build failed: '+e.message;}}
+$('fileInput').addEventListener('change',e=>{selectedFiles=[...e.target.files]; let roles={group2024:false,group2025:false,mapping:false}; selectedFiles.forEach(f=>{let r=fileRole(f.name); if(roles.hasOwnProperty(r)) roles[r]=f.name;}); $('fileList').innerHTML=`<div class="fileTag ${roles.group2024?'ok':'missing'}">${roles.group2024?'✓':'!'} Group sales 2024: ${roles.group2024||'missing'}</div><div class="fileTag ${roles.group2025?'ok':'missing'}">${roles.group2025?'✓':'!'} Group sales 2025: ${roles.group2025||'missing'}</div><div class="fileTag ${roles.mapping?'ok':'missing'}">${roles.mapping?'✓':'!'} Shop Hamper mapping: ${roles.mapping||'optional'}</div>`;});
+$('buildBtn').onclick=build; $('clearBtn').onclick=()=>location.reload();
+['broSearch','broTrend','broSort'].forEach(id=>$(id).addEventListener('input',renderBroTable)); $('resetBro').onclick=()=>{$('broSearch').value='';$('broTrend').value='all';$('broSort').value='sales25';renderBroTable();};
+['prodSearch','groupFilter','hamperFilter','prodSort'].forEach(id=>$(id).addEventListener('input',renderProdTable)); $('resetProd').onclick=()=>{$('prodSearch').value='';$('groupFilter').value='all';$('hamperFilter').value='all';$('prodSort').value='sales25';renderProdTable();};
+$('downloadBrochure').onclick=()=>csvDownload(brochureRows.map(r=>({BrochureLine:r.name,SKU2025:r.skus25.join(' | '),SKU2024:r.skus24.join(' | '),Sales2024:r.sales24,Sales2025:r.sales25,GrowthEuro:r.growthEuro,GrowthPct:r.growthPct,Qty2024:r.volume24,Qty2025:r.volume25,QtyChange:r.volumeChange,QtyGrowthPct:r.volumePct,Profit2025:r.profit25,GP2025:r.gp25,MissingSKUCount:r.missing.length})),'shop_hamper_brochure_comparison.csv');
+$('downloadAll').onclick=()=>csvDownload(productRows,'all_products_2024_vs_2025.csv');
+$('downloadMissing').onclick=()=>csvDownload(missingRows,'missing_mapped_skus.csv');
+$('downloadSummaryTop').onclick=()=>csvDownload(groupRows,'product_group_summary.csv');
+</script>
+</body>
+</html>
